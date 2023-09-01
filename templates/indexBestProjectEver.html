@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flask Web Interface</title>
+</head>
+<body>
+    <h1>Best Project Ever Home Page!</h1>
+    <h2>Activities Table</h2>
+    <ul>
+        <li><a href="#" id="returnTableActivities">View Activities Table</a></li>
+        <li><a href="#" id="generateNewActivities">Generate a new Activity in the Table</a></li>
+        <!-- Add more links for other API calls if needed -->
+    </ul>
+
+    <hr>
+    <h2>Meal Recipies Table</h2>
+    <ul>
+    <li><a href="#" id="returnTableMealRecipies">View Recipies Table</a></li>
+    <li><a href="#" id="mealRecipiesByDiff">View Meal Recipies Ordered by Difficulty</a></li>
+    </ul>
+    <hr>
+    <h2>Shibu Inu Generator</h2>
+    <ul>
+     <li><a href="#" id="shibuGenerator">See some Shibu Inus!</a></li>
+    </ul>
+    <hr>
+    <h2>Search iTunes!</h2>
+    <div>
+    <input type="text" id="iTunesSearchQuery" placeholder="Enter search query">
+    <button id="iTunesSearchButton">Search iTunes</button>
+        <button id="addToPlaylistButton">Add to Playlist</button>
+         <button id="viewPlaylistButton">View Playlist</button>
+    </div>
+    <hr>
+    <h2>Play Trivia!</h2>
+    <ul>
+        <li><a href="#" id="getTriviaQuestion">Play Trivia</a></li>
+         <li><a href="#" id="getTriviaRecord">View Correct Trivia Record</a></li>
+    </ul>
+ <div id="logMessage"></div>
+    <div id="message"></div>
+    <div id="returnTableData"></div>
+     <div id="buttonList">
+        <!-- Buttons will be added here dynamically -->
+    </div>
+
+    <script>
+        function createAndPopulateTable(data) {
+            const apiDataElement = document.getElementById("returnTableData");
+
+
+            const table = document.createElement("table");
+            table.border = "1";
+
+            const headers = Object.keys(data[0]);
+            const headerRow = document.createElement("tr");
+            headers.forEach(header => {
+                const th = document.createElement("th");
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+
+            data.forEach(rowData => {
+                const row = document.createElement("tr");
+                headers.forEach(header => {
+                    const cell = document.createElement("td");
+                    cell.innerHTML = rowData[header];
+                    row.appendChild(cell);
+                });
+                table.appendChild(row);
+            });
+
+            const buttonListDiv = document.getElementById("buttonList");
+            buttonListDiv.innerHTML = "";
+
+            apiDataElement.innerHTML = "";
+            apiDataElement.appendChild(table);
+        }
+        function displayImages(data) {
+            const imageContainer = document.getElementById("returnTableData");
+            imageContainer.innerHTML = "";
+            data.forEach((link, index) => {
+                const imageElement = document.createElement("img");
+                imageElement.src = link;
+                imageElement.alt = 'Shibe Image ${index}';
+
+
+             imageContainer.appendChild(imageElement);
+            });
+        }
+        function handleTriviaAnswer(answer){
+        fetch('/api/sendTriviaAnswer',{
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json'
+        },
+         body: JSON.stringify({ answer: answer })
+         })
+        .then(response => response.json())
+        .then(data => {
+        const apiDataElement = document.getElementById("returnTableData");
+                const buttonListDiv = document.getElementById("buttonList");
+                const messageElement = document.getElementById("message");
+        if(data[1] === true) {
+     const questionData = {
+                question: apiDataElement.querySelector("table tr:nth-child(2) td:nth-child(1)").textContent,
+                catagory: apiDataElement.querySelector("table tr:nth-child(2) td:nth-child(2)").textContent,
+                difficulty: apiDataElement.querySelector("table tr:nth-child(2) td:nth-child(3)").textContent,
+                correct_answer: answer,
+            };
+                 fetch('/api/insertTriviaData', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(questionData) // Assuming 'dataToInsert' should be replaced with 'questionData'
+            })
+            .then(insertResponse => {
+                // Handle response from insert API if needed
+            })
+            .catch(error => {
+                console.error('Error sending insert data:', error);
+            });
+        }
+        apiDataElement.innerHTML = "";
+        buttonListDiv.innerHTML = "";
+         messageElement.innerHTML = data[0];
+        })
+        .catch(error => {
+            console.error('Error sending POST data:', error);
+        });
+   }
+
+
+          function createButtonList(options) {
+    const buttonListDiv = document.getElementById("buttonList");
+    buttonListDiv.innerHTML = "";
+
+    const messageElement = document.getElementById("message");
+
+    options.forEach(option => {
+        const button = document.createElement("button");
+        button.innerHTML = option;
+        button.addEventListener("click", function() {
+           handleTriviaAnswer(option);
+        });
+
+        buttonListDiv.appendChild(button);
+    });
+}
+        document.getElementById("returnTableActivities").addEventListener("click", function() {
+            fetch('/api/funactivitiesView')
+                .then(response => response.json())
+                .then(data => {
+                    createAndPopulateTable(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching API data:', error);
+                });
+        });
+
+        document.getElementById("generateNewActivities").addEventListener("click", function() {
+            fetch('/api/funactivitiesGenerate')
+                .then(response => response.json())
+                .then(data => {
+                    createAndPopulateTable(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching API data:', error);
+                });
+        });
+        document.getElementById("returnTableMealRecipies").addEventListener("click", function() {
+            fetch('/api/recipies')
+                .then(response => response.json())
+                .then(data => {
+                    createAndPopulateTable(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching API data:', error);
+                });
+        });
+        document.getElementById("mealRecipiesByDiff").addEventListener("click", function() {
+            fetch('/api/recipiesByDiff')
+                .then(response => response.json())
+                .then(data => {
+                    createAndPopulateTable(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching API data:', error);
+                });
+        });
+        document.getElementById("shibuGenerator").addEventListener("click", function() {
+            fetch('/api/shibuInuGenerator')
+                .then(response => response.json())
+                .then(data => {
+                    displayImages(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching API data:', error);
+                });
+        });
+        document.getElementById("getTriviaQuestion").addEventListener("click", function() {
+    fetch('/api/triviaGameQuestion')
+        .then(response => response.json())
+        .then(data => {
+            const messageElement = document.getElementById("message");
+            messageElement.textContent = "";
+            createAndPopulateTable(data);
+            fetch('/api/triviaGameAnswers')
+                .then(response => response.json())
+                .then(answers => {
+                    createButtonList(answers, handleTriviaAnswer);
+                })
+                .catch(error => {
+                    console.error('Error fetching answers:', error);
+                });
+        })
+        .catch(error => {
+            console.error('Error fetching API data:', error);
+        });
+});
+    document.getElementById("getTriviaRecord").addEventListener("click", function() {
+            fetch('/api/triviaRecord')
+                .then(response => response.json())
+                .then(data => {
+                    createAndPopulateTable(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching API data:', error);
+                });
+        });
+        document.getElementById("iTunesSearchButton").addEventListener("click", function() {
+            const searchQuery = document.getElementById("iTunesSearchQuery").value;
+            fetch(`/api/iTunesSearch?query=${encodeURIComponent(searchQuery)}`)
+                .then(response => response.json())
+                .then(data => {
+                    createAndPopulateTable(data);
+
+                    document.getElementById("addToPlaylistButton").disabled = false;
+                    window.searchResults = data;
+                })
+                .catch(error => {
+                    console.error('Error fetching API data:', error);
+                });
+        });
+        document.getElementById("viewPlaylistButton").addEventListener("click", function() {
+            fetch('/api/exercisePlaylistView')
+                .then(response => response.json())
+                .then(data => {
+                    createAndPopulateTable(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching API data:', error);
+                });
+        });
+         document.getElementById("addToPlaylistButton").addEventListener("click", function() {
+         const messageElement = document.getElementById("message");
+    if (window.searchResults && window.searchResults.length > 0) {
+        const firstResult = window.searchResults[0]; // Get the first result
+
+        fetch('/api/addToPlaylist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(firstResult)
+        })
+        .then(response => response.json())
+        .then(data => {
+         messageElement.textContent = "Added to playlist";
+        setTimeout(() => {
+                    messageElement.textContent = "";
+                }, 3000);
+
+        })
+        .catch(error => {
+            console.error('Error sending data:', error);
+        });
+    }
+});
+    </script>
+</body>
+</html>
