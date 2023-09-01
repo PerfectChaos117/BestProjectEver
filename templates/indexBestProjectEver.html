@@ -9,7 +9,7 @@
     <ul>
         <li><a href="#" id="returnTableActivities">View Activities Table</a></li>
         <li><a href="#" id="generateNewActivities">Generate a new Activity in the Table</a></li>
-        <!-- Add more links for other API calls if needed -->
+      
     </ul>
 
     <hr>
@@ -115,10 +115,10 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(questionData) // Assuming 'dataToInsert' should be replaced with 'questionData'
+                body: JSON.stringify(questionData) 
             })
             .then(insertResponse => {
-                // Handle response from insert API if needed
+            
             })
             .catch(error => {
                 console.error('Error sending insert data:', error);
